@@ -5,7 +5,6 @@ import textwrap
 import sys
 from os.path import abspath, join, curdir, pardir
 
-from nose import SkipTest
 from nose.tools import assert_raises
 from mock import patch
 
@@ -113,7 +112,7 @@ def test_editable_install():
     """
     reset_env()
     result = run_pip('install', '-e', 'INITools==0.2', expect_error=True)
-    assert "--editable=INITools==0.2 should be formatted with svn+URL" in result.stdout
+    assert "INITools==0.2 should either by a path to a local project or a VCS url" in result.stdout
     assert len(result.files_created) == 1, result.files_created
     assert not result.files_updated, result.files_updated
 
@@ -490,6 +489,18 @@ def test_install_package_with_target():
     target_dir = env.scratch_path/'target'
     result = run_pip('install', '-t', target_dir, "initools==0.1")
     assert Path('scratch')/'target'/'initools' in result.files_created, str(result)
+
+
+def test_install_package_with_root():
+    """
+    Test installing a package using pip install --root
+    """
+    env = reset_env()
+    root_dir = env.scratch_path/'root'
+    result = run_pip('install', '--root', root_dir, "--install-option=--home=''",
+                     '--install-option=--install-lib=lib/python', "initools==0.1")
+
+    assert Path('scratch')/'root'/'lib'/'python'/'initools' in result.files_created, str(result)
 
 
 def test_find_command_folder_in_path():
